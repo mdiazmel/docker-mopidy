@@ -19,9 +19,15 @@ RUN set -ex \
         libffi-dev \
         libssl-dev \
         libxml2-dev \
-        gnupg \
-        gstreamer1.0-alsa \
+        python3-gst-1.0 \
+        gir1.2-gstreamer-1.0 \
+        gir1.2-gst-plugins-base-1.0 \
         gstreamer1.0-plugins-bad \
+        gstreamer1.0-plugins-good \
+        gstreamer1.0-plugins-ugly \
+        gstreamer1.0-tools \
+        gstreamer1.0-alsa \
+        alsa-utils \
         python-crypto \
         libspotify12 \
         libspotify-dev \
@@ -68,9 +74,22 @@ COPY pulse-client.conf /etc/pulse/client.conf
 # Allows any user to run mopidy, but runs by default as a randomly generated UID/GID.
 ENV HOME=/var/lib/mopidy
 RUN set -ex \
+ && useradd mopidy \
  && usermod -G audio,sudo mopidy \
  && chown mopidy:audio -R $HOME /entrypoint.sh \
  && chmod go+rwx -R $HOME /entrypoint.sh
+
+RUN apt-get update \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        python3-gi \
+        libcairo2-dev \
+        libffi-dev \
+        libgirepository1.0-dev \
+        libglib2.0-dev
+
+RUN set -ex \
+    pip install --ignore-installed --no-cache \
+        pygobject
 
 # Runs as mopidy user by default.
 USER mopidy
