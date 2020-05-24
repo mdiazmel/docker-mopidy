@@ -31,10 +31,22 @@ RUN set -ex \
         python-crypto \
         libspotify12 \
         libspotify-dev \
+        python3-gi \
+        libcairo2-dev \
+        libffi-dev \
+        libgirepository1.0-dev \
+        libglib2.0-dev \
  && apt-get update 
 
 RUN set -ex \
-    pip install \
+ && apt-get update \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        libxslt-dev \
+        python3-dev
+
+RUN set -ex \
+ && umask 022 \
+ && pip install \
         Mopidy-Iris \
         Mopidy-Moped \
         Mopidy-GMusic \
@@ -44,6 +56,11 @@ RUN set -ex \
         pyopenssl \
         youtube-dl 
 
+RUN set -ex \
+ && umask 022 \
+ && pip install --ignore-installed --no-cache \
+        pygobject
+
 # Install mopidy from repository
 RUN curl https://codeload.github.com/mopidy/mopidy/tar.gz/v3.0.1 --output mopidy.tar.gz \
  && tar -xzvf mopidy.tar.gz \
@@ -51,6 +68,12 @@ RUN curl https://codeload.github.com/mopidy/mopidy/tar.gz/v3.0.1 --output mopidy
  && pip install -e . \
  && mkdir -p /var/lib/mopidy/.config \
  && ln -s /config /var/lib/mopidy/.config/mopidy 
+
+RUN set -ex \
+ && umask 022 \
+ && pip install \
+        mopidy-mpd \
+        mopidy-local
 
 # Clean-up
 RUN apt-get purge --auto-remove -y \
@@ -79,17 +102,13 @@ RUN set -ex \
  && chown mopidy:audio -R $HOME /entrypoint.sh \
  && chmod go+rwx -R $HOME /entrypoint.sh
 
-RUN apt-get update \
- && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-        python3-gi \
-        libcairo2-dev \
-        libffi-dev \
-        libgirepository1.0-dev \
-        libglib2.0-dev
-
-RUN set -ex \
-    pip install --ignore-installed --no-cache \
-        pygobject
+#RUN apt-get update \
+# && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+#        python3-gi \
+#        libcairo2-dev \
+#        libffi-dev \
+#        libgirepository1.0-dev \
+#        libglib2.0-dev
 
 # Runs as mopidy user by default.
 USER mopidy
