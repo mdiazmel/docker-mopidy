@@ -70,11 +70,21 @@ RUN curl https://codeload.github.com/mopidy/mopidy/tar.gz/v3.0.1 --output mopidy
  && ln -s /config /var/lib/mopidy/.config/mopidy 
 
 RUN set -ex \
+ && apt-get update \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        libdbus-glib-1-dev \
+        python3-dbus \
+        dleyna-renderer \
+        dleyna-server
+
+RUN set -ex \
  && umask 022 \
  && pip install \
         mopidy-mpd \
-        mopidy-local
-
+        mopidy-local \
+        dbus-python \
+        Mopidy-dLeyna
+        
 # Clean-up
 RUN apt-get purge --auto-remove -y \
         curl \
@@ -84,6 +94,16 @@ RUN apt-get purge --auto-remove -y \
         libxml2-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ~/.cache
+
+#RUN set -ex \
+# && apt-get update \
+# && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+#        python3-dbus
+#
+#RUN set -ex \
+# && umask 022 \
+# && pip install \
+#        Mopidy-dLeyna
 
 # Start helper script.
 COPY entrypoint.sh /entrypoint.sh
@@ -101,14 +121,6 @@ RUN set -ex \
  && usermod -G audio,sudo mopidy \
  && chown mopidy:audio -R $HOME /entrypoint.sh \
  && chmod go+rwx -R $HOME /entrypoint.sh
-
-#RUN apt-get update \
-# && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-#        python3-gi \
-#        libcairo2-dev \
-#        libffi-dev \
-#        libgirepository1.0-dev \
-#        libglib2.0-dev
 
 # Runs as mopidy user by default.
 USER mopidy
