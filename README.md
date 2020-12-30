@@ -219,3 +219,13 @@ $ docker run -d -rm \
   mopidy
 ```
 
+# Usage
+
+```
+docker run --rm  \
+ --device /dev/snd \
+ -v "/home/pi/Music:/home/pi/Music:ro" -v "/home/pi/images:/home/pi/images:ro" 
+ -p 6600:6600 -p 6680:6680 
+ --network host 
+ --user $UID:$GID -it mopidy /bin/bash
+```

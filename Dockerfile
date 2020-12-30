@@ -6,7 +6,7 @@ RUN apt-get update \
         gnupg
 
 RUN set -ex \
-    # Official Mopidy install for Debian/Ubuntu along with some extensions
+    # Get official Mopidy repository for extensions
     # (see https://docs.mopidy.com/en/latest/installation/debian/ )
  && wget --progress=bar:force -O mopidy.gpg https://apt.mopidy.com/mopidy.gpg \
  && apt-key add mopidy.gpg \
@@ -42,8 +42,13 @@ RUN set -ex \
  && apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y \
         libxslt-dev \
-        python3-dev
+#        python3-dev \
+        libdbus-glib-1-dev \
+        python3-dbus \
+        dleyna-renderer \
+        dleyna-server
 
+# Install extras
 RUN set -ex \
  && umask 022 \
  && pip install \
@@ -53,6 +58,10 @@ RUN set -ex \
         Mopidy-Pandora \
         Mopidy-YouTube \
         Mopidy-Spotify \
+        Mopidy-mpd \
+        Mopidy-local \
+        dbus-python \
+        Mopidy-dLeyna \
         pyopenssl \
         youtube-dl 
 
@@ -62,29 +71,13 @@ RUN set -ex \
         pygobject
 
 # Install mopidy from repository
-RUN curl https://codeload.github.com/mopidy/mopidy/tar.gz/v3.0.1 --output mopidy.tar.gz \
+RUN curl https://codeload.github.com/mopidy/mopidy/tar.gz/v3.0.2 --output mopidy.tar.gz \
  && tar -xzvf mopidy.tar.gz \
- && cd mopidy-3.0.1 \
+ && cd mopidy-3.0.2 \
  && pip install -e . \
  && mkdir -p /var/lib/mopidy/.config \
  && ln -s /config /var/lib/mopidy/.config/mopidy 
 
-RUN set -ex \
- && apt-get update \
- && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-        libdbus-glib-1-dev \
-        python3-dbus \
-        dleyna-renderer \
-        dleyna-server
-
-RUN set -ex \
- && umask 022 \
- && pip install \
-        mopidy-mpd \
-        mopidy-local \
-        dbus-python \
-        Mopidy-dLeyna
-        
 # Clean-up
 RUN apt-get purge --auto-remove -y \
         curl \
@@ -92,18 +85,10 @@ RUN apt-get purge --auto-remove -y \
         libffi-dev \
         libssl-dev \
         libxml2-dev \
+        python3-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ~/.cache
 
-#RUN set -ex \
-# && apt-get update \
-# && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-#        python3-dbus
-#
-#RUN set -ex \
-# && umask 022 \
-# && pip install \
-#        Mopidy-dLeyna
 
 # Start helper script.
 COPY entrypoint.sh /entrypoint.sh
